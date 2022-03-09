@@ -14,38 +14,15 @@ import java.security.MessageDigest
 import java.text.DecimalFormat
 import kotlin.math.log10
 
+class DbgStream : OutputStream(){
+    override fun write(p0: Int) {}
+    override fun write(b: ByteArray?) {
+        println("Dbg: ${b.toString()}")
+    }
+}
+
 object FileUtils{
     private const val BUFFERSIZE = 4096
-
-    data class FPermInd(val read: Boolean, val write: Boolean, val exec: Boolean){
-        override fun toString(): String {
-            return (if(read) "r" else "-") +
-                    (if(write) "w" else "-") +
-                    (if(exec) "x" else "-")
-        }
-    }
-    class FPerm(val octalstr: String){
-        val owner = FPermInd(
-            (octalstr[0].code and 4)>0,
-            (octalstr[0].code and 2)>0,
-            (octalstr[0].code and 1)>0)
-        val group = FPermInd(
-            (octalstr[1].code and 4)>0,
-            (octalstr[1].code and 2)>0,
-            (octalstr[1].code and 1)>0)
-        val other = FPermInd(
-            (octalstr[2].code and 4)>0,
-            (octalstr[2].code and 2)>0,
-            (octalstr[2].code and 1)>0)
-        val anyread = owner.read || group.read || owner.read
-        val anywrite = owner.write || group.write || owner.write
-        val anyexec = owner.exec || group.exec || other.exec
-        override fun toString(): String {
-            return owner.toString()+
-                    group.toString()+
-                    other.toString()
-        }
-    }
 
     fun readableFileSize(size: Long): String {
         if (size <= 0) return "0"
@@ -59,24 +36,6 @@ object FileUtils{
         val res = StringBuilder()
         for (byte in bytes) res.append(String.format("%02x",byte))
         return res.toString()
-    }
-
-    fun createLink(file: String, link: String, symbolic: Boolean = false){
-        File(link).parentFile?.mkdirs()
-        //val parent : File? = File(link).parentFile?.mkdirs()
-        //if (parent != null && !parent.exists()) parent.mkdirs()
-        //println("run: ln ${if(symbolic) "-s " else ""}$file $link")
-        Runtime.getRuntime().exec("ln ${if(symbolic) "-s " else ""}$file $link")
-    }
-
-    /*fun setFilePerms(file: File, oct: Int){
-        val perm = FPerm(oct.toString())
-        file.setReadable(perm.anyread, !perm.group.read && !perm.other.read)
-        file.setWritable(perm.anywrite, !perm.group.write && !perm.other.write)
-        file.setExecutable(perm.anyexec, !perm.group.exec && !perm.other.exec)
-    }*/
-    fun setFilePerms(file: File, oct: Int){
-        Runtime.getRuntime().exec("chmod $oct ${file.path}")
     }
 
     fun downloadToString(
@@ -176,71 +135,31 @@ object FileUtils{
     fun extractTarGz(
         infile: File,
         outdir: File,
-        onStart: (size: Long) -> Unit = {},
         onProgress: (read: Long) -> Unit = {},
         onDone: (size: Long) -> Unit = {}
     ){
-        onStart(infile.length())
         AppContext.mtLaunch {
             if(outdir.exists()) outdir.deleteRecursively()
             outdir.mkdirs()
 
             val bi = BufferedInputStream(infile.inputStream())
             val gzi = GzipCompressorInputStream(bi)
-            val o = TarArchiveInputStream(gzi)
-            var entry : TarArchiveEntry?
 
+            var bytesRead : Int
             val buffer = ByteArray(BUFFERSIZE)
 
-            while(o.nextEntry.also{entry = it as TarArchiveEntry?} != null){
-                val tentry = entry!!
-                if (!o.canReadEntryData(tentry)) {
-                    println("[Extract] Cannot read: ${tentry.name}")
-                    continue
-                }
-                val f = File(outdir, tentry.name)
-                fun getLink() : File{
-                    //println("getLink: ${tentry.linkName} -> ${f.path}")
-                    val res =  if(tentry.linkName[0] == '/')
-                        File(outdir, tentry.linkName)
-                    else
-                        File(f.parentFile, tentry.linkName)
-                    //println("\t${res.path}")
-                    return res
-                }
-                if (tentry.isDirectory) {
-                    if (!f.isDirectory && !f.mkdirs()) {
-                        //throw IOException("failed to create directory $f")
-                        println("failed to create directory $f")
-                    }else{
-                        setFilePerms(f, tentry.mode)
-                    }
-                } else if(tentry.isLink) {
-                    createLink(f.path, getLink().path)
-                } else if(tentry.isSymbolicLink){
-                    createLink(f.path, getLink().path,true)
-                } else {
-                    val parent = f.parentFile
-                    if (parent == null || (!parent.isDirectory && !parent.mkdirs())) {
-                        println("failed to create directory $parent")
-                        continue
-                    }
+            val taros = Runtime.getRuntime().exec("tar xf - --no-same-owner -C ${outdir.path}").outputStream
 
-                    var bytesRead : Int
-                    val outputStream = f.outputStream()
-
-                    while (o.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                        onProgress(gzi.compressedCount)
-                    }
-
-                    outputStream.close()
-                    setFilePerms(f, tentry.mode)
-                }
+            while (gzi.read(buffer).also { bytesRead = it } != -1) {
+                taros.write(buffer, 0, bytesRead)
+                onProgress(gzi.compressedCount)
             }
+
+            taros.close()
             onDone(gzi.bytesRead)
         }
     }
+
     fun extractTarGzTask(
         infile: File,
         outfolder: File,
@@ -248,7 +167,7 @@ object FileUtils{
         doRemove: Boolean = true,
         task: Task = Task("Extracting ${infile.name}", Color(230,230,100))
     ){
-        var size: Long = 0
+        val size = infile.length()
         if(!task.added)
             AppContext.taskBar.addTask(task)
         else{
@@ -257,7 +176,7 @@ object FileUtils{
             task.progressState.value = 0f
         }
 
-        extractTarGz(infile, outfolder,{ size = it },{
+        extractTarGz(infile, outfolder,{
             task.progressState.value = it.toFloat() / size.toFloat()
         },{
             if(doRemove) AppContext.taskBar.TaskList.remove(task)
