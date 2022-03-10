@@ -14,9 +14,11 @@ plugins {
 }
 
 ext {
-    compileSdkVersion=32
-    minSdkVersion=21
-    targetSdkVersion=32
+    compileSdkVersion=28
+    minSdkVersion=14
+    targetSdkVersion=28
+    versionCode=2020040100
+    versionName="2020.4"
 }
 
 task clean(type: Delete) {

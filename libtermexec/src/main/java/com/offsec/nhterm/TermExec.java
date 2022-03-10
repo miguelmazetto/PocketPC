@@ -2,7 +2,9 @@ package com.offsec.nhterm;
 
 import android.annotation.TargetApi;
 import android.os.*;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;

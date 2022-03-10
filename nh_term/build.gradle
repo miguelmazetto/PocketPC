@@ -1,0 +1,66 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        //applicationId 'com.offsec.nhterm'
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+        def nh_app_name = 'com.offsec.nethunter'
+        def nh_app_script_path = '/data/data/' + nh_app_name + '/files/scripts'
+        def nh_app_script_bin_path = '/data/data/' + nh_app_name + '/files/scripts/bin'
+        buildConfigField("String",
+                "NH_APP_NAME",
+                "\"${nh_app_name}\"")
+
+        buildConfigField("String",
+                "NH_APP_SCRIPT_PATH",
+                "\"${nh_app_script_path}\"")
+
+        buildConfigField("String",
+                "NH_APP_SCRIPT_BIN_PATH",
+                "\"${nh_app_script_bin_path}\"")
+
+        ndk {
+            moduleName "libjackpal-androidterm5nhj1"
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86'
+            ldLibs 'log', 'c'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    sourceSets {
+        main {
+            jni.srcDirs = ['jni']
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+    productFlavors {
+    }
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
+        }
+    }
+}
+
+dependencies {
+    implementation project(':emulatorview')
+    implementation project(':libtermexec')
+    //implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'androidx.core:core:1.0.0'
+}

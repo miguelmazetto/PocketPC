@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PocketPC</string>
+    <string name="nh_term_notification_channel">nh_term</string>
 </resources>

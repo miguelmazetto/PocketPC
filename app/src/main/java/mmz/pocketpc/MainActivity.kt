@@ -2,9 +2,13 @@ package mmz.pocketpc
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.preference.PreferenceManager
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -17,19 +21,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.os.persistableBundleOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.offsec.nhterm.util.TermSettings
 import kotlinx.coroutines.Dispatchers
 import mmz.pocketpc.ui.theme.PocketPCTheme
 import mmz.pocketpc.util.TaskBar
 import kotlinx.coroutines.launch
 import mmz.pocketpc.screens.updateDistroVersions
-import mmz.pocketpc.screens.updateInstalledDistro
-import mmz.pocketpc.util.FileUtils
 import mmz.pocketpc.util.GlobalConfig
 import mmz.pocketpc.util.getProot
 import java.io.File
@@ -43,26 +45,38 @@ class MultiThread: ViewModel(){
 }
 
 object AppContext {
-    @Volatile
-    private lateinit var appContext: Context
+    @Volatile private lateinit var appContext: Context
+    @Volatile private lateinit var windowManager: WindowManager
     private val multiThread = MultiThread()
+
+    var savedInstanceState: Bundle? = null
 
     val taskBar = TaskBar()
     val arch = System.getProperty("os.arch")
     //val prefs = PreferenceManager.getDefaultSharedPreferences(appContext)
 
     fun setContext(context: Context) { appContext = context }
+    fun setWM(wm: WindowManager) { windowManager = wm }
     fun getDataDir(): File? { return appContext.dataDir }
     fun getCacheDir(): File? { return appContext.cacheDir }
     fun getPrefs(): SharedPreferences { return PreferenceManager.getDefaultSharedPreferences(appContext) }
     fun getRes(): Resources { return appContext.resources }
+    fun getPM(): PackageManager { return appContext.packageManager }
+    fun getDMetrics(): DisplayMetrics {
+        val dm = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(dm)
+        return dm
+    }
     fun mtLaunch(func: () -> Unit) { multiThread.launch(func) }
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppContext.savedInstanceState = savedInstanceState
         AppContext.setContext(this)
+        AppContext.setWM(this.windowManager)
+
         GlobalConfig.load()
         if(GlobalConfig.installedDistro != "") GlobalConfig.installStatus.value = 2
         updateDistroVersions()

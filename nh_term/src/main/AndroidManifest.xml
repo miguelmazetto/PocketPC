@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.offsec.nhterm"
+    android:installLocation="auto">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <permission android:name="mmz.pocketpc.term.permission.RUN_SCRIPT"
+        android:label="@string/perm_run_script"
+        android:description="@string/permdesc_run_script"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:protectionLevel="dangerous" />
+    <permission android:name="mmz.pocketpc.term.permission.RUN_SCRIPT_NH_LOGIN"
+        android:label="@string/perm_run_script_nh"
+        android:description="@string/permdesc_run_script_nh"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:protectionLevel="dangerous" />
+    <permission android:name="mmz.pocketpc.term.permission.RUN_SCRIPT_NH"
+        android:label="@string/perm_run_script_nh"
+        android:description="@string/permdesc_run_script_nh"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:protectionLevel="dangerous" />
+    <permission android:name="mmz.pocketpc.term.permission.RUN_SCRIPT_SU"
+        android:label="@string/perm_run_script_su"
+        android:description="@string/permdesc_run_script_su"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:protectionLevel="dangerous" />
+    <permission android:name="mmz.pocketpc.term.permission.APPEND_TO_PATH"
+        android:label="@string/perm_append_to_path"
+        android:description="@string/permdesc_append_to_path"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:protectionLevel="dangerous" />
+    <permission android:name="mmz.pocketpc.term.permission.PREPEND_TO_PATH"
+        android:label="@string/perm_prepend_to_path"
+        android:description="@string/permdesc_prepend_to_path"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:protectionLevel="dangerous" />
+    <application android:icon="@mipmap/ic_launcher"
+        android:hardwareAccelerated="true">
+        <activity android:name="com.offsec.nhterm.Term"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:exported="true"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity-alias android:name="TermInternal"
+            android:targetActivity="com.offsec.nhterm.Term"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.private.OPEN_NEW_WINDOW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.private.SWITCH_WINDOW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+        <activity android:name="com.offsec.nhterm.RemoteInterface"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.OPEN_NEW_WINDOW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:name="TermHere"
+            android:label="@string/activity_term_here_title"
+            android:targetActivity="com.offsec.nhterm.RemoteInterface"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <data android:mimeType="*/*" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+        <activity android:name="com.offsec.nhterm.RunScriptNetHunterLogin"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:permission="mmz.pocketpc.term.permission.RUN_SCRIPT_NH_LOGIN"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.RUN_SCRIPT_NH_LOGIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.offsec.nhterm.RunScriptNetHunter"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:permission="mmz.pocketpc.term.permission.RUN_SCRIPT_NH"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.RUN_SCRIPT_NH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.offsec.nhterm.RunScriptSu"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:permission="mmz.pocketpc.term.permission.RUN_SCRIPT_SU"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.RUN_SCRIPT_SU" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.offsec.nhterm.RunScript"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:permission="mmz.pocketpc.term.permission.RUN_SCRIPT"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.RUN_SCRIPT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.offsec.nhterm.RunShortcut"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.RUN_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.offsec.nhterm.TermPreferences"
+            android:label="@string/preferences"/>
+        <activity android:name="com.offsec.nhterm.WindowList"
+            android:label="@string/window_list" />
+        <service android:name="com.offsec.nhterm.TermService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.offsec.nhterm.action.START_TERM.v1"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+        <activity
+            android:label="@string/activity_shortcut_create"
+            android:name="com.offsec.nhterm.shortcuts.AddShortcut"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:configChanges="orientation|keyboard|keyboardHidden"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+            </intent-filter>
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <data     android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.offsec.nhterm.shortcuts.FSNavigator"
+            android:label="@string/addshortcut_button_find_command"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|keyboardHidden"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="com.sec.android.support.multiwindow"
+            android:value="true">
+        </meta-data>
+    </application>
+</manifest>
