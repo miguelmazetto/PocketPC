@@ -22,7 +22,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.offsec.nhterm.util.TermSettings
 import kotlinx.coroutines.Dispatchers
 import mmz.pocketpc.ui.theme.PocketPCTheme
 import mmz.pocketpc.util.TaskBar

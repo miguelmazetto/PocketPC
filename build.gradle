@@ -1,9 +1,13 @@
 buildscript {
+    ext.kotlin_version = '1.6.10'
     ext {
-        compose_version = '1.1.1'
+        compose_version = '1.2.0-alpha05'
     }
     repositories {
         google()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
@@ -15,7 +19,7 @@ plugins {
 
 ext {
     compileSdkVersion=32
-    minSdkVersion=21
+    minSdkVersion=24
     targetSdkVersion=32
 }
 
@@ -23,6 +27,9 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-repositories {
-    google()
+allprojects {
+    repositories {
+        google()
+        maven { url "https://jitpack.io" }
+    }
 }
