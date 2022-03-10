@@ -27,6 +27,8 @@ import com.offsec.nhterm.util.TermSettings;
 import java.io.*;
 import java.util.ArrayList;
 
+import mmz.pocketpc.AppContext;
+
 /**
  * A terminal session, controlling the process attached to the session (usually
  * a shell). It keeps track of process PID and destroys it's process group
@@ -52,11 +54,11 @@ public class ShellTermSession extends GenericTermSession {
         }
     };
 
-    public ShellTermSession(TermSettings settings, String initialCommand, String _mInitialShell) throws IOException {
+    public ShellTermSession(TermSettings settings, String initialCommand, String _mInitialShell, String[] env) throws IOException {
         super(ParcelFileDescriptor.open(new File("/dev/ptmx"), ParcelFileDescriptor.MODE_READ_WRITE),
                 settings, false);
 
-        initializeSession(_mInitialShell);
+        initializeSession(_mInitialShell, env);
 
         setTermOut(new ParcelFileDescriptor.AutoCloseOutputStream(mTermFd));
         setTermIn(new ParcelFileDescriptor.AutoCloseInputStream(mTermFd));
@@ -76,7 +78,7 @@ public class ShellTermSession extends GenericTermSession {
         Log.d("STS: ^^", mInitialShell + " cmd: " +  mInitialCommand);
     }
 
-    private void initializeSession(String mShell) throws IOException {
+    private void initializeSession(String mShell, String[] env) throws IOException {
         TermSettings settings = mSettings;
 
         String path = System.getenv("PATH");
@@ -96,11 +98,13 @@ public class ShellTermSession extends GenericTermSession {
         if (settings.verifyPath()) {
             path = checkPath(path);
         }
-        String[] env = new String[4];
-        env[0] = "TERM=" + settings.getTermType();
-        env[1] = "PATH=";// + path + ":" + BuildConfig.NH_APP_SCRIPT_PATH + ":" + BuildConfig.NH_APP_SCRIPT_BIN_PATH;
-        env[2] = "HOME=" + settings.getHomePath();
-        env[3] = "PWD="  + "/";
+
+        //String[] env = new String[4];
+        //env[0] = "TERM=" + settings.getTermType();
+        //env[1] = "PATH=";// + path + ":" + BuildConfig.NH_APP_SCRIPT_PATH + ":" + BuildConfig.NH_APP_SCRIPT_BIN_PATH;
+        //env[2] = "HOME=" + settings.getHomePath();
+        //env[3] = "PWD="  + "/";
+
        // Log.d("Initialize Sess", settings.getShell());
         mProcId = createSubprocess(mShell, env);
     }

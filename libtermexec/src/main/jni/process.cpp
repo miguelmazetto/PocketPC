@@ -20,13 +20,15 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <dirent.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <termios.h>
-#include <signal.h>
-#include <string.h>
+#include <csignal>
+#include <cstring>
+
+#include <syslog.h>
 
 typedef unsigned short uint_least16_t;
 
@@ -94,6 +96,9 @@ static void closeNonstandardFileDescriptors() {
     // Android uses shared memory to communicate between processes. The file descriptor is passed
     // to child processes using the environment variable ANDROID_PROPERTY_WORKSPACE, which is of
     // the form "properties_fd,sizeOfSharedMemory"
+
+    syslog(LOG_INFO, "closeNonstandardFileDescriptors()");
+
     int properties_fd = -1;
     char* properties_fd_string = getenv("ANDROID_PROPERTY_WORKSPACE");
     if (properties_fd_string != NULL) {

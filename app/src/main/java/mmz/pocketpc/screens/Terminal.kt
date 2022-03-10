@@ -2,7 +2,9 @@ package mmz.pocketpc.screens
 
 import android.content.Context
 import android.content.res.Resources
+import android.view.ViewGroup
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -11,6 +13,8 @@ import com.offsec.nhterm.emulatorview.EmulatorView
 import com.offsec.nhterm.emulatorview.TermSession
 import com.offsec.nhterm.util.TermSettings
 import mmz.pocketpc.AppContext
+import mmz.pocketpc.util.GlobalConfig
+import java.io.File
 
 /*val TermTextColor = mutableStateOf(Color.White)
 val TermBackgroundColor = mutableStateOf(Color.Black)*/
@@ -20,9 +24,26 @@ open class Shell {
     val buffer = mutableStateListOf<String>()
     private var initiated = false
     var session : ShellTermSession? = null
-    private fun start() {
+    private fun start(initialCommand: String = "") {
+        val datadir = AppContext.getDataDir()
+        val shellcmd = File(datadir, "files/${GlobalConfig.S.prootName}").path +
+                " -0 -l --kill-on-exit -r " +
+                File(datadir, "rootfs").path +
+                " -b /dev -b /proc -b /sys" +
+                " -b ${File(datadir, "rootfs/tmp").path}:/dev/shm" +
+                " -w /root" +
+                //" /usr/bin/env -i" +
+                //" HOME=/root" +
+                //" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games" +
+                //" TERM=vt100" +
+                //" LANG=C.UTF-8" +
+                " /bin/bash --login"
+        val env = arrayOf(
+            "PWD=$datadir",
+            "PROOT_TMP_DIR=${File(datadir, "files/proot_tmp").path}"
+        )
         session = ShellTermSession(TermSettings(AppContext.getRes() ,AppContext.getPrefs()),
-            "/system/bin/sh -","")
+            initialCommand, shellcmd, env)
     }
     fun init() {
         if (!initiated) {
@@ -41,9 +62,9 @@ open class Shell {
 
 class Terminal : Shell() {
 
-    private var view : EmulatorView? = null
+    //private var view : EmulatorView? = null
 
-    fun getView(context: Context): EmulatorView {
+    /*fun getView(context: Context): EmulatorView {
         if(view == null) {
             init()
             return EmulatorView(
@@ -51,14 +72,19 @@ class Terminal : Shell() {
                 session as TermSession,
                 context.resources.displayMetrics
             ).also { view = it }
-        }else
+        }else {
+            (view!!.parent as ViewGroup).removeView(view)
             return view!!
-    }
+        }
+    }*/
 
-    init{
-        /*val buf = remember { buffer }
-        val tcolor = remember { TermTextColor }
-        val bcolor = remember { TermBackgroundColor }*/
+    fun getView(context: Context): EmulatorView {
+        init()
+        return EmulatorView(
+            context,
+            session as TermSession,
+            context.resources.displayMetrics
+        )
     }
 
     @Composable
@@ -89,5 +115,8 @@ val MainTerminals = listOf(Terminal())
 
 @Composable
 fun TerminalScreen() {
-    MainTerminals[0].Screen()
+    if(GlobalConfig.installStatus.value == 2)
+        MainTerminals[0].Screen()
+    else
+        Text("Distro not installed")
 }

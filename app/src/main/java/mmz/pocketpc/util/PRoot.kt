@@ -13,11 +13,16 @@ fun getProot(){
             for (f in File(AppContext.getDataDir(), "files/").listFiles()!!)
                 if(f.name.startsWith("proot-") && !f.name.startsWith("proot-$tag"))
                     f.delete()
+            tempfile.setExecutable(true, true)
             tempfile.renameTo(File(AppContext.getDataDir(),"files/proot-$tag"))
             GlobalConfig.S.prootName = "proot-$tag"
             GlobalConfig.save()
         })
     }
+    val proot_tmpdir = File(AppContext.getDataDir(), "files/proot_tmp")
+    if(proot_tmpdir.exists()) proot_tmpdir.deleteRecursively()
+    proot_tmpdir.mkdirs()
+
     FileUtils.downloadToString(URL("https://api.github.com/repos/proot-me/proot/releases/latest"),{ jsontext ->
         val json = JSONTokener(jsontext).nextValue() as JSONObject
         val tag = json.getString("tag_name")
