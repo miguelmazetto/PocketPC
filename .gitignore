@@ -11,3 +11,5 @@ local.properties
 libtermexec/build
 emulatorview/build
 app/build
+term/build
+term/.cxx
