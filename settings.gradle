@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "PocketPC"
-include ':app', ':libtermexec', ':emulatorview'
-include ':nh_term'
+include ':app'
+include ':term', ':emulatorview', ':libtermexec'

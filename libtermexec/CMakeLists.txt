@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.4.1)
+add_library(jackpal-termexec2 SHARED src/main/cpp/process.cpp)
+find_library(log log)
+find_library(c c)
+target_link_libraries(jackpal-termexec2 log)
+target_link_libraries(jackpal-termexec2 c)

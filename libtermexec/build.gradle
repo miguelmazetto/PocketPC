@@ -1,13 +1,8 @@
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.3'
-    }
-}
 apply plugin: 'com.android.library'
+
+repositories{
+    google()
+}
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -18,7 +13,6 @@ android {
 
         ndk {
             moduleName 'libjackpal-termexec2'
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
             ldLibs 'log', 'c'
         }
     }
@@ -27,11 +21,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    sourceSets {
-        main {
-            jni.srcDirs = ["jni"];
-        }
-    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -39,24 +29,24 @@ android {
         }
     }
     externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
+        cmake {
+            path file('CMakeLists.txt')
         }
     }
 }
 
-// Not sure if the below is still required but it causes errors in 2019
 // by default recent plugin version does not copy any AIDL files "to avoid publishing too much"
-/*android.libraryVariants.all { variant ->
+android.libraryVariants.all { variant ->
     Sync packageAidl = project.tasks.create("addPublic${variant.name.capitalize()}Aidl", Sync) { sync ->
         from "$project.projectDir/src/main/aidl/"
         into "$buildDir/intermediates/bundles/${variant.dirName}/aidl/"
     }
 
     variant.javaCompile.dependsOn packageAidl
-}*/
+}
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.annotation:annotation:1.0.0'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.annotation:annotation:1.3.0'
 }

@@ -29,11 +29,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
 import mmz.pocketpc.ui.theme.PocketPCTheme
-import mmz.pocketpc.util.TaskBar
 import kotlinx.coroutines.launch
+import mmz.pocketpc.screens.Terminal
 import mmz.pocketpc.screens.updateDistroVersions
 import mmz.pocketpc.util.GlobalConfig
-import mmz.pocketpc.util.getProot
+import mmz.pocketpc.util.*
 import java.io.File
 
 var CurrentScreen = DrawerScreens[0]
@@ -57,6 +57,8 @@ object AppContext {
 
     fun setContext(context: Context) { appContext = context }
     fun setWM(wm: WindowManager) { windowManager = wm }
+    fun getContext(): Context { return appContext }
+
     fun getDataDir(): File? { return appContext.dataDir }
     fun getCacheDir(): File? { return appContext.cacheDir }
     fun getPrefs(): SharedPreferences { return PreferenceManager.getDefaultSharedPreferences(appContext) }
@@ -74,6 +76,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppContext.savedInstanceState = savedInstanceState
+        Terminal.TermAct.onCreate(this)
         AppContext.setContext(this)
         AppContext.setWM(this.windowManager)
 
@@ -88,7 +91,12 @@ class MainActivity : ComponentActivity() {
         if(this.cacheDir != null){
             for (f in this.cacheDir.listFiles()!!) { f.delete() }
         }
-        getProot()
+        Chroot.Shell()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Terminal.TermAct.onStart()
     }
 }
 
