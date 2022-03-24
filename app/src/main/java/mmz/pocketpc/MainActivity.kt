@@ -45,6 +45,7 @@ class MultiThread: ViewModel(){
 }
 
 object AppContext {
+    @Volatile private lateinit var appActivity: MainActivity
     @Volatile private lateinit var appContext: Context
     @Volatile private lateinit var windowManager: WindowManager
     private val multiThread = MultiThread()
@@ -53,11 +54,17 @@ object AppContext {
 
     val taskBar = TaskBar()
     val arch = System.getProperty("os.arch")
+    lateinit var libdir : File
     //val prefs = PreferenceManager.getDefaultSharedPreferences(appContext)
 
-    fun setContext(context: Context) { appContext = context }
+    fun setActivity(act: MainActivity) {
+        appActivity = act
+        appContext = act
+        libdir = File(act.applicationInfo.nativeLibraryDir)
+    }
+    fun getActivity(): MainActivity { return appActivity }
     fun setWM(wm: WindowManager) { windowManager = wm }
-    fun getContext(): Context { return appContext }
+    //fun getContext(): Context { return appContext }
 
     fun getDataDir(): File? { return appContext.dataDir }
     fun getCacheDir(): File? { return appContext.cacheDir }
@@ -76,10 +83,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppContext.savedInstanceState = savedInstanceState
-        Terminal.TermAct.onCreate(this)
-        AppContext.setContext(this)
+        AppContext.setActivity(this)
         AppContext.setWM(this.windowManager)
-
+        Terminal.TermAct.initialcmd = Chroot.getFakerootCmd(arrayOf("/system/bin/sh"))
+        Terminal.TermAct.onCreate(this)
         GlobalConfig.load()
         if(GlobalConfig.installedDistro != "") GlobalConfig.installStatus.value = 2
         updateDistroVersions()
@@ -91,7 +98,7 @@ class MainActivity : ComponentActivity() {
         if(this.cacheDir != null){
             for (f in this.cacheDir.listFiles()!!) { f.delete() }
         }
-        Chroot.Shell()
+        //Chroot.Shell()
     }
 
     override fun onStart() {
