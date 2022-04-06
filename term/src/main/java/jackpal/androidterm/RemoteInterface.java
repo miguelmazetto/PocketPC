@@ -160,7 +160,7 @@ public class RemoteInterface extends Activity {
         }
 
         try {
-            TermSession session = Term.createTermSession(this, mSettings, initialCommand);
+            TermSession session = Term.createTermSession(this, mSettings, initialCommand, null);
 
             session.setFinishCallback(service);
             service.getSessions().add(session);

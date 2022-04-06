@@ -61,12 +61,14 @@ object AppContext {
         appActivity = act
         appContext = act
         libdir = File(act.applicationInfo.nativeLibraryDir)
+        println("Libdir: $libdir")
     }
     fun getActivity(): MainActivity { return appActivity }
     fun setWM(wm: WindowManager) { windowManager = wm }
     //fun getContext(): Context { return appContext }
 
     fun getDataDir(): File? { return appContext.dataDir }
+    fun getFilesDir(): File? { return appContext.filesDir }
     fun getCacheDir(): File? { return appContext.cacheDir }
     fun getPrefs(): SharedPreferences { return PreferenceManager.getDefaultSharedPreferences(appContext) }
     fun getRes(): Resources { return appContext.resources }
@@ -84,8 +86,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         AppContext.savedInstanceState = savedInstanceState
         AppContext.setActivity(this)
-        AppContext.setWM(this.windowManager)
-        Terminal.TermAct.initialcmd = Chroot.getFakerootCmd(arrayOf("/system/bin/sh"))
+        AppContext.setWM(this.windowManager) // File(AppContext.getDataDir(),"rootfs/bin/bash").path
+        Chroot.prepareBin()
+        //Terminal.TermAct.initialenv.addAll(Chroot.getChrootEnv())
+        Terminal.TermAct.initialenv.addAll(Chroot.getPocketPCEnv())
+        //Terminal.TermAct.initialcmd = "/system/bin/sh" //Chroot.getFakerootCmd(arrayOf("/system/bin/sh")) /* +" && "+Chroot.getChrootCmd()+" /bin/bash"*/
+        Terminal.TermAct.initialcmd = "chrootdbg"
         Terminal.TermAct.onCreate(this)
         GlobalConfig.load()
         if(GlobalConfig.installedDistro != "") GlobalConfig.installStatus.value = 2

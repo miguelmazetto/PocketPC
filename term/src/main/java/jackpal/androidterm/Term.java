@@ -32,6 +32,7 @@ import jackpal.androidterm.util.TermSettings;
 
 import java.io.IOException;
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -483,8 +484,8 @@ public class Term extends Activity implements UpdateCallback, SharedPreferences.
 		finish();
 	}
 
-	protected static TermSession createTermSession(Context context, TermSettings settings, String initialCommand) throws IOException {
-		GenericTermSession session = new ShellTermSession(settings, initialCommand);
+	protected static TermSession createTermSession(Context context, TermSettings settings, String initialCommand, ArrayList<String> env) throws IOException {
+		GenericTermSession session = new ShellTermSession(settings, initialCommand, env);
 		// XXX We should really be able to fetch this from within TermSession
 		session.setProcessExitMessage(context.getString(R.string.process_exit_message));
 
@@ -492,10 +493,11 @@ public class Term extends Activity implements UpdateCallback, SharedPreferences.
 	}
 
 	public String initialcmd = null;
+	public ArrayList<String> initialenv = new ArrayList<String>();
 
 	private TermSession createTermSession() throws IOException {
 		TermSettings settings = mSettings;
-		TermSession session = createTermSession(this, settings, (initialcmd != null ? initialcmd : settings.getInitialCommand()));
+		TermSession session = createTermSession(this, settings, (initialcmd != null ? initialcmd : settings.getInitialCommand()), initialenv);
 		session.setFinishCallback(mTermService);
 		return session;
 	}

@@ -19,12 +19,15 @@ package jackpal.androidterm;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
+import android.util.JsonWriter;
 import android.util.Log;
 import jackpal.androidterm.compat.FileCompat;
 import jackpal.androidterm.util.TermSettings;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * A terminal session, controlling the process attached to the session (usually
@@ -50,11 +53,11 @@ public class ShellTermSession extends GenericTermSession {
         }
     };
 
-    public ShellTermSession(TermSettings settings, String initialCommand) throws IOException {
+    public ShellTermSession(TermSettings settings, String initialCommand, ArrayList<String> env) throws IOException {
         super(ParcelFileDescriptor.open(new File("/dev/ptmx"), ParcelFileDescriptor.MODE_READ_WRITE),
                 settings, false);
 
-        initializeSession();
+        initializeSession(env);
 
         setTermOut(new ParcelFileDescriptor.AutoCloseOutputStream(mTermFd));
         setTermIn(new ParcelFileDescriptor.AutoCloseInputStream(mTermFd));
@@ -73,10 +76,17 @@ public class ShellTermSession extends GenericTermSession {
         mWatcherThread.setName("Process watcher");
     }
 
-    private void initializeSession() throws IOException {
+    private void initializeSession(ArrayList<String> env) throws IOException {
         TermSettings settings = mSettings;
 
         String path = System.getenv("PATH");
+        for (String e : env) {
+            if(e.substring(0,5).equals("PATH=")){
+                path = path + ":" + e.substring(5);
+                env.remove(e);
+                break;
+            }
+        }
         if (settings.doPathExtensions()) {
             String appendPath = settings.getAppendPath();
             if (appendPath != null && appendPath.length() > 0) {
@@ -93,12 +103,19 @@ public class ShellTermSession extends GenericTermSession {
         if (settings.verifyPath()) {
             path = checkPath(path);
         }
-        String[] env = new String[3];
-        env[0] = "TERM=" + settings.getTermType();
-        env[1] = "PATH=" + path;
-        env[2] = "HOME=" + settings.getHomePath();
+        if(env == null) env = new ArrayList<String>();
+        String[] nenv = new String[3];
 
-        mProcId = createSubprocess(settings.getShell(), env);
+        nenv[0] = "TERM=" + settings.getTermType();
+        nenv[1] = "PATH=" + path;
+        nenv[2] = "HOME=" + settings.getHomePath();
+
+        env.addAll(Arrays.asList(nenv));
+
+        String[] mesc = env.toArray(new String[env.size()]);
+        System.out.println("EnvA: "+Arrays.toString(mesc));
+
+        mProcId = createSubprocess(settings.getShell(), mesc);
     }
 
     private String checkPath(String path) {

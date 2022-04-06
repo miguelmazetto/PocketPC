@@ -155,6 +155,7 @@ public class TermSession {
                         int read = mTermIn.read(mBuffer);
                         if (read == -1) {
                             // EOF -- process exited
+                            System.out.println("EOFF");
                             break;
                         }
                         int offset = 0;

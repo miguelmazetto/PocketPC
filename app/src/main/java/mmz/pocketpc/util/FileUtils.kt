@@ -38,6 +38,13 @@ object FileUtils{
         return res.toString()
     }
 
+    fun link(src: File, dest: File, symbolic: Boolean = false){
+        val arr = arrayListOf("ln")
+        if(symbolic) arr.add("-s")
+        arr.addAll(arrayOf(src.path, dest.path))
+        Runtime.getRuntime().exec(arr.toTypedArray())
+    }
+
     fun downloadToString(
         url: URL,
         onDone: (res: String) -> Unit = {},
@@ -132,11 +139,14 @@ object FileUtils{
         })
     }
 
+    data class CmdAdd(val before: Array<String>? = null, val after: Array<String>? = null, val envadd: Array<String>? = null)
+
     fun extractTarGz(
         infile: File,
         outdir: File,
         onProgress: (read: Long) -> Unit = {},
-        onDone: (size: Long) -> Unit = {}
+        onDone: (size: Long) -> Unit = {},
+        froot: Boolean = false
     ){
         AppContext.mtLaunch {
             if(outdir.exists()) outdir.deleteRecursively()
@@ -148,7 +158,12 @@ object FileUtils{
             var bytesRead : Int
             val buffer = ByteArray(BUFFERSIZE)
 
-            val taros = Runtime.getRuntime().exec("tar xf - --no-same-owner -C ${outdir.path}").outputStream
+            //val cmd = arrayListOf<String>()
+            //cmd.addAll("tar xf - -C ${outdir.path}".split(" "))
+            //cmd.addAll(arrayOf("xf","-","-C",outdir.path)) //xf - -C ${outdir.path}
+
+            val taros = Runtime.getRuntime().exec("tar xf - -C ${outdir.path}",
+                if(froot) Chroot.getFakerootEnv() else null).outputStream
 
             while (gzi.read(buffer).also { bytesRead = it } != -1) {
                 taros.write(buffer, 0, bytesRead)
@@ -156,6 +171,7 @@ object FileUtils{
             }
 
             taros.close()
+            if(froot) Chroot.saveFaked()
             onDone(gzi.bytesRead)
         }
     }
@@ -164,6 +180,7 @@ object FileUtils{
         infile: File,
         outfolder: File,
         onDone: (size: Long, task: Task) -> Unit = { sz: Long, tsk: Task -> },
+        froot: Boolean = false,
         doRemove: Boolean = true,
         task: Task = Task("Extracting ${infile.name}", Color(230,230,100))
     ){
@@ -181,6 +198,6 @@ object FileUtils{
         },{
             if(doRemove) AppContext.taskBar.TaskList.remove(task)
             onDone(it, task)
-        })
+        }, froot)
     }
 }

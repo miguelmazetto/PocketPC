@@ -1,0 +1,4 @@
+#!/system/bin/sh
+export FAKECHROOT_DETECT=1
+echo 'gdbserver --wrapper env "LD_PRELOAD=${POCKETPC_LIBS}/libfakechroot.so" -- :1234 echo 2>&1'
+gdbserver --wrapper env "LD_PRELOAD=${POCKETPC_LIBS}/libfakechroot.so" -- :1234 echo 2>&1

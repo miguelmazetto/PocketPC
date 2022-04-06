@@ -115,7 +115,7 @@ fun installDistro() {
                 tempdir.renameTo(outdir)
                 inst.value = 2
                 updateInstalledDistro()
-            },true,task)
+            }, true,true,task)
         }
 
         var tryDownload : ()->Unit = {}
