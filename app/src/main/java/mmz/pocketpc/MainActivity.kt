@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
         //Terminal.TermAct.initialenv.addAll(Chroot.getChrootEnv())
         Terminal.TermAct.initialenv.addAll(Chroot.getPocketPCEnv())
         //Terminal.TermAct.initialcmd = "/system/bin/sh" //Chroot.getFakerootCmd(arrayOf("/system/bin/sh")) /* +" && "+Chroot.getChrootCmd()+" /bin/bash"*/
-        Terminal.TermAct.initialcmd = "chrootdbg"
+        //Terminal.TermAct.initialcmd = "chrootdbg"
         Terminal.TermAct.onCreate(this)
         GlobalConfig.load()
         if(GlobalConfig.installedDistro != "") GlobalConfig.installStatus.value = 2

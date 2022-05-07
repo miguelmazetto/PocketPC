@@ -142,13 +142,14 @@ KEY_PID=`eval $FAKED $FAKEDOPTS $PIPEIN`
 FAKEROOTKEY=`echo $KEY_PID|cut -d: -f1`
 PID=`echo $KEY_PID|cut -d: -f2`
 
+stderr "here"
 if [ "$WAITINTRAP" -eq 0 ]; then
   trap "kill -s HUP $PID" EXIT INT
 else
   trap 'FAKEROOTKEY=$FAKEROOTKEY LD_LIBRARY_PATH="$PATHS" LD_PRELOAD="$FAKEROOT_LIB" /bin/ls -l / >/dev/null 2>&1; while kill -s HUP $PID 2>/dev/null; do sleep 0.1; done' EXIT INT
   #trap 'FAKEROOTKEY=$FAKEROOTKEY LD_PRELOAD="$FAKEROOT_LIB" /bin/ls -l / >/dev/null 2>&1; while kill -s HUP $PID 2>/dev/null; do sleep 0.1; done' EXIT INT
 fi
-
+stderr "here\n"
 if test -z "$FAKEROOTKEY" || test -z "$PID"; then
   fatal "error while starting the \`faked' daemon."
 fi
@@ -166,7 +167,7 @@ if test -n "$LD_PRELOAD"; then
 fi
 
 export FAKEROOT_FD_BASE
-
+stderr "here\n"
 if test -z "$*"; then
   FAKEROOTKEY=$FAKEROOTKEY LD_LIBRARY_PATH="$PATHS"  LD_PRELOAD="$FAKEROOT_LIB" ${SHELL:-/system/bin/sh}
   #FAKEROOTKEY=$FAKEROOTKEY  LD_PRELOAD="$FAKEROOT_LIB" ${SHELL:-/bin/sh}
@@ -176,7 +177,7 @@ else
   #FAKEROOTKEY=$FAKEROOTKEY  LD_PRELOAD="$FAKEROOT_LIB" "$@"
   RESULT=$?
 fi
-
+stderr "here\n"
 exit $RESULT
 
 # Local Variables:

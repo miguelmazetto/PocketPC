@@ -118,40 +118,45 @@ fun installDistro() {
             }, true,true,task)
         }
 
-        var tryDownload : ()->Unit = {}
+        if(outfile.exists())
+            extractDistro()
+        else {
 
-        fun verifyDownload(){
-            println("verifyDownload:\n\t\"hash: $hash\"\n\tfhash: $fhash")
-            if(fhash.equals(hash))
-                extractDistro()
-            else
-                tryDownload()
-        }
+            var tryDownload: () -> Unit = {}
 
-        tryDownload = {
-            println("Start trydownload: ${url.toString()}")
-            FileUtils.downloadToFileTask(url,outfile,{ size, tsk, hsh ->
-                fhash = hsh
-                println("FHash: $fhash")
-                verifyDownload()
-            },false, task)
-        }
-
-        FileUtils.downloadToString(distro.getShaURL(),{
-            for (s in it.split("\n")) {
-                if(s.endsWith(fname)){
-                    hash = s.substring(0,64)
-                    if(nextstep) verifyDownload()
-                    else nextstep = true
-                    println("CHash: $s")
-                    return@downloadToString
-                }
+            fun verifyDownload() {
+                println("verifyDownload:\n\t\"hash: $hash\"\n\tfhash: $fhash")
+                if (fhash.equals(hash))
+                    extractDistro()
+                else
+                    tryDownload()
             }
-            println("Failed to get sha256 hash")
-            throw IOException("Failed to get sha256 hash!")
-        })
 
-        tryDownload()
+            tryDownload = {
+                println("Start trydownload: ${url.toString()}")
+                FileUtils.downloadToFileTask(url, outfile, { size, tsk, hsh ->
+                    fhash = hsh
+                    println("FHash: $fhash")
+                    verifyDownload()
+                }, false, task)
+            }
+
+            FileUtils.downloadToString(distro.getShaURL(), {
+                for (s in it.split("\n")) {
+                    if (s.endsWith(fname)) {
+                        hash = s.substring(0, 64)
+                        if (nextstep) verifyDownload()
+                        else nextstep = true
+                        println("CHash: $s")
+                        return@downloadToString
+                    }
+                }
+                println("Failed to get sha256 hash")
+                throw IOException("Failed to get sha256 hash!")
+            })
+
+            tryDownload()
+        }
 
     } catch (e: IOException) {
         inst.value = 0

@@ -158,14 +158,28 @@ object FileUtils{
             var bytesRead : Int
             val buffer = ByteArray(BUFFERSIZE)
 
-            //val cmd = arrayListOf<String>()
-            //cmd.addAll("tar xf - -C ${outdir.path}".split(" "))
-            //cmd.addAll(arrayOf("xf","-","-C",outdir.path)) //xf - -C ${outdir.path}
+            val cmd = "tar xf - -C ${outdir.path}"
+            var cmdarr = cmd.split(" ").toTypedArray()
+            if (froot) cmdarr = arrayOf("sh","-c","${Chroot.getFakerootCmd()} $cmd")
 
-            val taros = Runtime.getRuntime().exec("tar xf - -C ${outdir.path}",
-                if(froot) Chroot.getFakerootEnv() else null).outputStream
+            println("tarcmd: $cmd")
+            val tarp = Runtime.getRuntime().exec( //${Chroot.getBin("sudo")} ${Chroot.getBin("gdbserver")} :1234
+                "${Chroot.getBin("gdbserver")} :2000 tar xvf - -C ${outdir.path}",
+                if(froot) Chroot.getFakerootEnv() else null
+            )
+            println("postexec")
+            val taros = tarp.outputStream
+            val taris = tarp.inputStream
+            val tarerr = tarp.errorStream
 
             while (gzi.read(buffer).also { bytesRead = it } != -1) {
+
+                println("inwhile")
+                val tis = taris.readBytes()
+                if(tis.size>0) println("TarIS: ${String(tis)}")
+                val ter = tarerr.readBytes()
+                if(ter.size>0) println("TarERR: ${String(ter)}")
+
                 taros.write(buffer, 0, bytesRead)
                 onProgress(gzi.compressedCount)
             }
